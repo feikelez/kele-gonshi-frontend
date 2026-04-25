@@ -23,7 +23,13 @@
       </div>
     </div>
     <div class="chart-body">
-      <div ref="chartRef" class="chart-container"></div>
+      <div v-if="loading" class="chart-loading">
+        <el-icon class="is-loading">
+          <Loading/>
+        </el-icon>
+        <span>加载中...</span>
+      </div>
+      <div v-else ref="chartRef" class="chart-container"></div>
     </div>
   </div>
 </template>
@@ -31,6 +37,8 @@
 <script setup lang="ts">
 import {ref, onMounted, watch, onBeforeUnmount, nextTick} from 'vue'
 import * as echarts from 'echarts'
+import {Loading} from '@element-plus/icons-vue'
+import {workRecordApi} from '@/api'
 
 const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
@@ -44,28 +52,32 @@ const projects = ref([
 
 const selectedProject = ref(1)
 const selectedMonth = ref('2026-04')
-
-// 模拟数据 - 按项目 + 年月，四周工时
-const mockData: Record<number, Record<string, number[]>> = {
-  1: {
-    '2026-04': [42, 38, 45, 36],
-    '2026-03': [40, 35, 42, 38]
-  },
-  2: {
-    '2026-04': [28, 32, 26, 30],
-    '2026-03': [26, 28, 30, 24]
-  },
-  3: {
-    '2026-04': [18, 22, 16, 20],
-    '2026-03': [15, 18, 14, 16]
-  },
-  4: {
-    '2026-04': [12, 14, 10, 8],
-    '2026-03': [10, 12, 8, 6]
-  }
-}
+const loading = ref(false)
 
 const weekLabels = ['第1周', '第2周', '第3周', '第4周']
+
+async function fetchWeeklyStats() {
+  if (!selectedProject.value || !selectedMonth.value) return
+
+  loading.value = true
+  try {
+    const res = await workRecordApi.getProjectWeeklyStats({
+      projectId: selectedProject.value,
+      month: selectedMonth.value
+    })
+
+    if (res.code === 200 && res.data) {
+      const weekData = res.data.weeks.map((w) => w.hours)
+      loading.value = false
+      await nextTick()
+      renderChart(weekData)
+    }
+  } catch (error) {
+    console.error('获取项目工时趋势失败:', error)
+    loading.value = false
+    renderChart([0, 0, 0, 0])
+  }
+}
 
 function renderChart(weekData: number[]) {
   if (!chartRef.value) return
@@ -171,15 +183,11 @@ function handleResize() {
 }
 
 watch([selectedProject, selectedMonth], () => {
-  const projectData = mockData[selectedProject.value] || mockData[1]
-  const weekData = projectData[selectedMonth.value] || projectData['2026-04']
-  renderChart(weekData)
+  fetchWeeklyStats()
 })
 
 onMounted(() => {
-  const projectData = mockData[selectedProject.value] || mockData[1]
-  const weekData = projectData[selectedMonth.value] || projectData['2026-04']
-  renderChart(weekData)
+  fetchWeeklyStats()
   window.addEventListener('resize', handleResize)
 })
 
@@ -231,10 +239,28 @@ onBeforeUnmount(() => {
 .chart-body {
   width: 100%;
   min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chart-container {
   width: 100%;
   height: 280px;
+}
+
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #8a8a8a;
+  font-size: 14px;
+  height: 280px;
+}
+
+.chart-loading .el-icon {
+  font-size: 24px;
 }
 </style>
