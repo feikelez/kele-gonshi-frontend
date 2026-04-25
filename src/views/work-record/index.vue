@@ -27,14 +27,6 @@
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="审批状态">
-          <el-select v-model="searchParams.status" placeholder="全部" clearable style="width: 140px">
-            <el-option :value="0" label="草稿"/>
-            <el-option :value="1" label="待审批"/>
-            <el-option :value="2" label="已通过"/>
-            <el-option :value="3" label="已驳回"/>
-          </el-select>
-        </el-form-item>
         <el-form-item label="工作类型">
           <el-select v-model="searchParams.workType" placeholder="全部" clearable style="width: 140px">
             <el-option :value="0" label="开发"/>
@@ -82,20 +74,10 @@
           </template>
         </el-table-column>
         <el-table-column prop="workContent" label="工作内容" min-width="200" show-overflow-tooltip/>
-        <el-table-column label="状态" width="100">
+        <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="120" fixed="right">
-          <template #default="{ row }">
-            <template v-if="row.status === 0 || row.status === 3">
-              <el-button link type="primary" @click="openEditModal(row)">编辑</el-button>
-              <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-            </template>
-            <span v-else class="no-action">-</span>
+            <el-button link type="primary" @click="openEditModal(row)">编辑</el-button>
+            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -145,7 +127,6 @@ const currentRecord = ref<WorkRecord | null>(null)
 
 const searchParams = reactive<WorkRecordPageParams>({
   projectId: undefined,
-  status: undefined,
   workType: undefined,
   current: 1,
   size: 10
@@ -163,7 +144,6 @@ async function fetchRecords() {
       current: pagination.current,
       size: pagination.size,
       projectId: searchParams.projectId,
-      status: searchParams.status,
       workType: searchParams.workType
     }
     const res = await workRecordApi.myPage(params)
@@ -194,7 +174,6 @@ function handleSearch() {
 
 function handleReset() {
   searchParams.projectId = undefined
-  searchParams.status = undefined
   searchParams.workType = undefined
   pagination.current = 1
   fetchRecords()
