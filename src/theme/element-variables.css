@@ -1,0 +1,128 @@
+/* Element Plus CSS 变量覆盖 - 纸质感主题 */
+
+:root {
+  /* 品牌色系 */
+  --el-color-primary: #c4a77d;
+  --el-color-primary-light-3: #d4bf9e;
+  --el-color-primary-light-5: #e0d4c1;
+  --el-color-primary-light-7: #ebe4d6;
+  --el-color-primary-light-8: #f0ebe0;
+  --el-color-primary-light-9: #f5f2eb;
+  --el-color-primary-dark-2: #a88d68;
+
+  /* 功能色系 */
+  --el-color-success: #2d6a4f;
+  --el-color-warning: #926c2e;
+  --el-color-danger: #b85c38;
+  --el-color-info: #8a8a8a;
+
+  /* 背景色 */
+  --el-bg-color: #f7f4ed;
+  --el-bg-color-page: #f7f4ed;
+  --el-bg-color-overlay: #ffffff;
+
+  /* 边框色 */
+  --el-border-color: #d4cfc5;
+  --el-border-color-light: #e8e3d9;
+  --el-border-color-lighter: #f0ece4;
+  --el-border-color-extra-light: #f5f2eb;
+
+  /* 圆角 */
+  --el-border-radius-base: 2px;
+  --el-border-radius-small: 1px;
+  --el-border-radius-round: 4px;
+  --el-border-radius-circle: 50%;
+
+  /* 字体 */
+  --el-font-family: 'Noto Serif SC', 'SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC', sans-serif;
+  --el-font-size-base: 14px;
+  --el-font-size-small: 13px;
+  --el-font-size-large: 16px;
+  --el-font-size-extra-large: 18px;
+
+  /* 文字色 */
+  --el-text-color-primary: #2c2c2c;
+  --el-text-color-regular: #5a5a5a;
+  --el-text-color-secondary: #8a8a8a;
+  --el-text-color-placeholder: #b8b3a9;
+  --el-text-color-disabled: #c5c0b6;
+
+  /* 阴影 */
+  --el-box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --el-box-shadow-light: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-lighter: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --el-box-shadow-dark: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* 间距 */
+  --el-spacing-base: 16px;
+  --el-spacing-small: 12px;
+  --el-spacing-large: 20px;
+
+  /* ===== 组件特定变量 ===== */
+
+  /* Button */
+  --el-button-font-weight: 500;
+  --el-button-border-radius: var(--el-border-radius-base);
+
+  /* Input */
+  --el-input-bg-color: #f7f4ed;
+  --el-input-border-color: #d4cfc5;
+  --el-input-hover-border-color: #c4a77d;
+  --el-input-focus-border-color: #c4a77d;
+  --el-input-disabled-bg-color: #ebe4d6;
+
+  /* Select */
+  --el-select-border-color-hover: #c4a77d;
+
+  /* Table */
+  --el-table-header-bg-color: #f7f4ed;
+  --el-table-tr-bg-color: #ffffff;
+  --el-table-row-hover-bg-color: #f7f4ed;
+  --el-table-border-color: #d4cfc5;
+  --el-table-header-text-color: #5a5a5a;
+  --el-table-text-color: #2c2c2c;
+  --el-table-fixed-box-shadow: 0 0 8px rgba(0, 0, 0, 0.04);
+
+  /* Dialog */
+  --el-dialog-border-radius: 2px;
+  --el-dialog-bg-color: #ffffff;
+  --el-dialog-title-font-size: 18px;
+
+  /* Menu */
+  --el-menu-bg-color: transparent;
+  --el-menu-hover-bg-color: #ebe4d6;
+  --el-menu-text-color: #5a5a5a;
+  --el-menu-active-color: #2c2c2c;
+  --el-menu-item-height: 48px;
+  --el-menu-sub-item-height: 44px;
+  --el-menu-icon-width: 20px;
+
+  /* Dropdown */
+  --el-dropdown-menu-box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  /* Pagination */
+  --el-pagination-bg-color: #ffffff;
+  --el-pagination-button-bg-color: #ffffff;
+  --el-pagination-hover-color: #c4a77d;
+
+  /* Form */
+  --el-form-label-font-size: 12px;
+  --el-form-item-label-color: #5a5a5a;
+
+  /* Tag */
+  --el-tag-border-radius: 1px;
+  --el-tag-padding: 0 10px;
+
+  /* Message Box */
+  --el-messagebox-border-radius: 2px;
+
+  /* Message */
+  --el-message-success-color: #2d6a4f;
+  --el-message-warning-color: #926c2e;
+  --el-message-error-color: #b85c38;
+  --el-message-info-color: #8a8a8a;
+
+  /* Badge */
+  --el-badge-font-size: 11px;
+  --el-badge-padding: 0 5px;
+}

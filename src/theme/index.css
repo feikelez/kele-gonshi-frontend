@@ -1,0 +1,10 @@
+/* 主题入口文件 */
+
+/* 1. Element Plus CSS 变量覆盖（必须放在最前） */
+@import './element-variables.css';
+
+/* 2. 过渡动画 */
+@import './transition.css';
+
+/* 3. 复用组件样式 */
+@import './custom-components.css';
