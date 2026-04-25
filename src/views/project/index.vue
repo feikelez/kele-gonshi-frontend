@@ -186,11 +186,11 @@ async function fetchProjects() {
         return
       }
       const res = await projectApi.getByManagerIdPage(
-        userId,
-        pagination.current,
-        pagination.size,
-        searchParams.projectName,
-        searchParams.status
+          userId,
+          pagination.current,
+          pagination.size,
+          searchParams.projectName,
+          searchParams.status
       )
       projectList.value = res.data.records
       pagination.total = Number(res.data.total)
@@ -224,8 +224,8 @@ function openAddModal() {
 }
 
 function openEditModal(project: Project) {
-  isEdit.value = true
   currentProject.value = {...project}
+  isEdit.value = true
   showModal.value = true
 }
 

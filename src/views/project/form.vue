@@ -132,6 +132,8 @@ watch(() => props.visible, async (visible) => {
     await nextTick()
     Object.assign(formData, initFormData)
     resetForm()
+  } else {
+    Object.assign(formData, props.project)
   }
 })
 
