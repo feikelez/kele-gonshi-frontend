@@ -4,6 +4,14 @@
 
     <StatsGrid :stats="stats"/>
 
+    <!-- 新增图表区域 -->
+    <div class="charts-section">
+      <div class="charts-row">
+        <ProjectWorkHoursChart class="chart-item"/>
+        <TopProjectsChart class="chart-item"/>
+      </div>
+    </div>
+
     <div class="content-grid">
       <TaskList :tasks="recentTasks"/>
 
@@ -29,6 +37,8 @@ import TaskList from '@/components/dashboard/TaskList.vue'
 import WorkHoursChart from '@/components/dashboard/WorkHoursChart.vue'
 import ProjectList from '@/components/dashboard/ProjectList.vue'
 import QuickActions from '@/components/dashboard/QuickActions.vue'
+import ProjectWorkHoursChart from '@/components/dashboard/ProjectWorkHoursChart.vue'
+import TopProjectsChart from '@/components/dashboard/TopProjectsChart.vue'
 
 const stats = computed(() => [
   {
@@ -182,6 +192,20 @@ onMounted(() => {
   font-family: 'SimHei', 'Microsoft YaHei', 'PingFang SC', 'Heiti SC', sans-serif;
 }
 
+.charts-section {
+  margin: 24px 0;
+}
+
+.charts-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.chart-item {
+  min-height: 360px;
+}
+
 .content-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -189,6 +213,7 @@ onMounted(() => {
 }
 
 @media (max-width: 1024px) {
+  .charts-row,
   .content-grid {
     grid-template-columns: 1fr;
   }
