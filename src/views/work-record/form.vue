@@ -2,7 +2,7 @@
   <el-dialog
       :model-value="visible"
       :title="isEdit ? '编辑工时' : '填报工时'"
-      width="560px"
+      width="1200px"
       class="base-dialog base-dialog--accent"
       :close-on-click-modal="false"
       @update:model-value="$emit('update:visible', $event)"
@@ -74,12 +74,7 @@
       </el-form-item>
 
       <el-form-item label="工作内容" prop="workContent">
-        <el-input
-            v-model="formData.workContent"
-            type="textarea"
-            :rows="4"
-            placeholder="请详细描述工作内容"
-        />
+        <MarkdownEditor v-model="formData.workContent" height="300px" placeholder="请详细描述工作内容" />
       </el-form-item>
     </el-form>
 
@@ -99,6 +94,7 @@ import {reactive, watch, ref, computed, nextTick} from 'vue'
 import type {FormInstance, FormRules} from 'element-plus'
 import type {WorkRecord, Project, Task} from '@/api/types'
 import {useUserStore} from "@/stores";
+import MarkdownEditor from '@/components/base/MarkdownEditor.vue'
 
 const props = defineProps<{
   visible: boolean

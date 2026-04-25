@@ -331,7 +331,7 @@ onMounted(async () => {
   left: 0;
   top: 0;
   bottom: 0;
-  z-index: 100;
+  z-index: 1;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
 }
 
