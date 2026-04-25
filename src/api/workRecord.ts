@@ -1,6 +1,25 @@
 import { request, type PageResult } from './request'
 import type { WorkRecord, WorkRecordPageParams } from './types'
 
+export interface ProjectWeeklyStats {
+  projectId: number
+  projectName: string
+  month: string
+  weeks: Array<{ week: number; hours: number }>
+}
+
+export interface ProjectTopStats {
+  projectId: number
+  projectName: string
+  totalHours: number
+  trend: number
+}
+
+export interface TopProjectsStats {
+  month: string
+  projects: ProjectTopStats[]
+}
+
 export const workRecordApi = {
   add(data: WorkRecord) {
     return request.post<WorkRecord>('/work-record', data)
@@ -48,5 +67,13 @@ export const workRecordApi = {
 
   myPage(params: Omit<WorkRecordPageParams, 'userId'>) {
     return request.get<PageResult<WorkRecord>>('/work-record/my/page', { params })
+  },
+
+  getProjectWeeklyStats(params: { projectId: number; month: string }) {
+    return request.get<ProjectWeeklyStats>('/work-record/stats/project-weekly', { params })
+  },
+
+  getTopProjects(params: { month: string; limit?: number }) {
+    return request.get<TopProjectsStats>('/work-record/stats/top-projects', { params })
   },
 }

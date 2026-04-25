@@ -4,57 +4,75 @@
       <h3 class="chart-title">项目工时排行</h3>
       <div class="chart-controls">
         <el-date-picker
-          v-model="selectedMonth"
-          type="month"
-          placeholder="选择月份"
-          size="default"
-          class="month-picker"
-          format="YYYY年MM月"
-          value-format="YYYY-MM"
+            v-model="selectedMonth"
+            type="month"
+            placeholder="选择月份"
+            size="default"
+            class="month-picker"
+            format="YYYY年MM月"
+            value-format="YYYY-MM"
         />
       </div>
     </div>
     <div class="chart-body">
-      <div ref="chartRef" class="chart-container"></div>
+      <div v-if="loading" class="chart-loading">
+        <el-icon class="is-loading">
+          <Loading/>
+        </el-icon>
+        <span>加载中...</span>
+      </div>
+      <div v-else ref="chartRef" class="chart-container"></div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, watch, onBeforeUnmount, computed} from 'vue'
+import {ref, onMounted, watch, onBeforeUnmount, nextTick} from 'vue'
 import * as echarts from 'echarts'
+import {Loading} from '@element-plus/icons-vue'
+import {workRecordApi} from '@/api'
 
 const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
 
 const selectedMonth = ref('2026-04')
-
-// 模拟数据 - 每月项目工时
-const mockData = {
-  '2026-04': [
-    { name: 'OA系统重构', hours: 168, trend: 12 },
-    { name: 'CRM客户管理', hours: 142, trend: -5 },
-    { name: '移动端APP', hours: 96, trend: 8 },
-    { name: '数据中台', hours: 74, trend: 0 },
-    { name: '供应链系统', hours: 58, trend: 15 }
-  ],
-  '2026-03': [
-    { name: 'OA系统重构', hours: 152, trend: 0 },
-    { name: 'CRM客户管理', hours: 138, trend: 0 },
-    { name: '移动端APP', hours: 88, trend: 0 },
-    { name: '数据中台', hours: 72, trend: 0 },
-    { name: '供应链系统', hours: 45, trend: 0 }
-  ]
-}
+const loading = ref(false)
 
 const projectColors = ['#b85c38', '#c4a77d', '#2d6a4f', '#926c2e', '#5a5a5a']
 
-function initChart() {
-  if (!chartRef.value) return
+async function fetchTopProjects() {
+  loading.value = true
+  try {
+    const res = await workRecordApi.getTopProjects({
+      month: selectedMonth.value,
+      limit: 5
+    })
+
+    if (res.code === 200 && res.data && res.data.projects) {
+      loading.value = false
+      await nextTick()
+      await nextTick()
+      renderChart(res.data.projects)
+    } else {
+      renderChart([])
+    }
+  } catch (error) {
+    console.error('获取项目工时排行失败:', error)
+    renderChart([])
+  }
+}
+
+function renderChart(projects: Array<{ projectId: number; projectName: string; totalHours: number; trend: number }>) {
+
+  if (!chartRef.value) {
+    return
+  }
+
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
 
   chartInstance = echarts.init(chartRef.value)
-
-  const data = mockData[selectedMonth.value] || mockData['2026-04']
 
   const option: echarts.EChartsOption = {
     tooltip: {
@@ -71,7 +89,7 @@ function initChart() {
       },
       formatter: (params: any) => {
         const item = params[0]
-        const project = data[item.dataIndex]
+        const project = projects[item.dataIndex]
         return `
           <div style="padding: 8px 12px;">
             <div style="font-weight: 600; color: #2c2c2c; margin-bottom: 6px;">${item.name}</div>
@@ -79,7 +97,7 @@ function initChart() {
               <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${item.color};"></span>
               <span>累计工时: <strong style="color: #b85c38; font-size: 14px;">${item.value}h</strong></span>
             </div>
-            ${project.trend !== 0 ? `
+            ${project && project.trend !== 0 ? `
               <div style="margin-top: 4px; color: ${project.trend > 0 ? '#2d6a4f' : '#b85c38'}; font-size: 12px;">
                 环比 ${project.trend > 0 ? '+' : ''}${project.trend}%
               </div>
@@ -90,7 +108,7 @@ function initChart() {
     },
     grid: {
       left: '3%',
-      right: '8%',
+      right: '12%',
       bottom: '8%',
       top: '8%',
       containLabel: true
@@ -103,7 +121,7 @@ function initChart() {
         fontSize: 12,
         padding: [0, 0, 8, 0]
       },
-      axisLine: { show: false },
+      axisLine: {show: false},
       axisLabel: {
         color: '#8a8a8a',
         fontSize: 12
@@ -117,10 +135,10 @@ function initChart() {
     },
     yAxis: {
       type: 'category',
-      data: data.map(d => d.name),
+      data: projects.map(p => p.projectName),
       inverse: true,
-      axisLine: { show: false },
-      axisTick: { show: false },
+      axisLine: {show: false},
+      axisTick: {show: false},
       axisLabel: {
         color: '#5a5a5a',
         fontSize: 13,
@@ -131,22 +149,22 @@ function initChart() {
     series: [
       {
         type: 'bar',
-        data: data.map((d, i) => ({
-          value: d.hours,
+        data: projects.map((p, i) => ({
+          value: p.totalHours,
           itemStyle: {
             color: {
               type: 'linear',
               x: 0, y: 0, x2: 1, y2: 0,
               colorStops: [
-                { offset: 0, color: projectColors[i] },
-                { offset: 1, color: projectColors[i] + 'aa' }
+                {offset: 0, color: projectColors[i % projectColors.length]},
+                {offset: 1, color: projectColors[i % projectColors.length] + 'aa'}
               ]
             },
             borderRadius: [0, 6, 6, 0]
           },
           emphasis: {
             itemStyle: {
-              color: projectColors[i]
+              color: projectColors[i % projectColors.length]
             }
           }
         })),
@@ -176,23 +194,16 @@ function initChart() {
   chartInstance.setOption(option)
 }
 
-function updateChart() {
-  if (chartInstance) {
-    chartInstance.dispose()
-  }
-  initChart()
-}
-
 function handleResize() {
   chartInstance?.resize()
 }
 
 watch(selectedMonth, () => {
-  updateChart()
+  fetchTopProjects()
 })
 
 onMounted(() => {
-  initChart()
+  fetchTopProjects()
   window.addEventListener('resize', handleResize)
 })
 
@@ -231,10 +242,29 @@ onBeforeUnmount(() => {
 
 .chart-body {
   width: 100%;
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chart-container {
   width: 100%;
   height: 260px;
+}
+
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #8a8a8a;
+  font-size: 14px;
+  height: 260px;
+}
+
+.chart-loading .el-icon {
+  font-size: 24px;
 }
 </style>
