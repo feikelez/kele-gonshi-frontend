@@ -3,6 +3,7 @@
     <div class="card-header">
       <h3>本周工时</h3>
       <div class="week-selector">
+        <button v-if="!isCurrentWeek" class="week-btn this-week-btn" @click="goThisWeek">本周</button>
         <button class="week-btn" @click="prevWeek">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M15 18l-6-6 6-6"/>
@@ -44,11 +45,13 @@ interface WeekDay {
 const props = defineProps<{
   weekDays: WeekDay[]
   weekRangeLabel?: string
+  currentWeekStart?: Date
 }>()
 
 const emit = defineEmits<{
   prevWeek: []
   nextWeek: []
+  goThisWeek: []
 }>()
 
 const chartRef = ref<HTMLElement>()
@@ -64,13 +67,23 @@ const weekLabel = computed(() => {
   return `${start.getMonth() + 1}/${start.getDate()} - ${end.getMonth() + 1}/${end.getDate()}`
 })
 
+const isCurrentWeek = computed(() => {
+  if (!props.currentWeekStart) return true
+  const thisMonday = new Date()
+  thisMonday.setDate(thisMonday.getDate() - thisMonday.getDay() + 1)
+  thisMonday.setHours(0, 0, 0, 0)
+  const currentMonday = new Date(props.currentWeekStart)
+  currentMonday.setHours(0, 0, 0, 0)
+  return thisMonday.getTime() === currentMonday.getTime()
+})
+
 const totalWeekHours = computed(() => {
-  return props.weekDays.reduce((sum, day) => sum + day.hours, 0)
+  return props.weekDays.reduce((sum, day) => sum + day.hours, 0).toFixed(2)
 })
 
 const avgDailyHours = computed(() => {
   const daysWithHours = props.weekDays.filter(d => d.hours > 0).length
-  return daysWithHours > 0 ? (totalWeekHours.value / daysWithHours).toFixed(1) : '0'
+  return daysWithHours > 0 ? (Number(totalWeekHours.value) / daysWithHours).toFixed(2) : '0.00'
 })
 
 function renderChart() {
@@ -188,6 +201,10 @@ function nextWeek() {
   emit('nextWeek')
 }
 
+function goThisWeek() {
+  emit('goThisWeek')
+}
+
 watch(() => props.weekDays, () => {
   renderChart()
 }, {deep: true})
@@ -271,6 +288,20 @@ onBeforeUnmount(() => {
 .week-btn svg {
   width: 14px;
   height: 14px;
+}
+
+.this-week-btn {
+  font-size: 11px;
+  color: var(--accent-rust);
+  border: 1px solid var(--accent-rust);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-style: normal;
+}
+
+.this-week-btn:hover {
+  background: var(--accent-rust);
+  color: white;
 }
 
 .week-label {

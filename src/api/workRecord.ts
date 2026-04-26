@@ -80,4 +80,8 @@ export const workRecordApi = {
   export(params: { userId?: number; projectId?: number; startDate?: string; endDate?: string }) {
     return request.get('/work-record/export', { params, responseType: 'blob' })
   },
+
+  getWorkHoursStats(params: { userId: number; startDate: string; endDate: string }) {
+    return request.get<Array<{ label: string; hours: number }>>('/work-record/user/stats', { params })
+  },
 }

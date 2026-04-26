@@ -18,8 +18,10 @@
       <WorkHoursChart
           :week-days="weekDays"
           :week-range-label="weekRangeLabel"
+          :current-week-start="currentWeekStart"
           @prev-week="prevWeek"
           @next-week="nextWeek"
+          @go-this-week="goThisWeek"
       />
 
       <ProjectList :projects="myProjects"/>
@@ -31,7 +33,7 @@
 
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
-import {projectApi, taskApi} from '@/api'
+import {projectApi, taskApi, workRecordApi} from '@/api'
 import {useUserStore} from '@/stores/user'
 import WelcomeSection from '@/components/dashboard/WelcomeSection.vue'
 import StatsGrid from '@/components/dashboard/StatsGrid.vue'
@@ -92,20 +94,30 @@ const recentTasks = ref<Array<{
 // 当前周基准日期（周一）
 const currentWeekStart = ref(getMonday(new Date()))
 
-// 生成指定周的 weekDays
-function generateWeekDays(weekStart: Date) {
-  const days: Array<{ label: string, hours: number }> = []
-  const dayLabels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(weekStart)
-    d.setDate(d.getDate() + i)
-    days.push({ label: dayLabels[i], hours: Math.round(Math.random() * 4 + 6 * 10) / 10 })
-  }
-  return days
-}
-
 // 当前展示的 weekDays
-const weekDays = ref(generateWeekDays(currentWeekStart.value))
+const weekDays = ref<Array<{ label: string, hours: number }>>([])
+
+async function fetchWeekDays(weekStart: Date) {
+  const end = new Date(weekStart)
+  end.setDate(end.getDate() + 6)
+  const startStr = weekStart.toISOString().split('T')[0]
+  const endStr = end.toISOString().split('T')[0]
+  try {
+    const res = await workRecordApi.getWorkHoursStats({
+      userId: userStore.userInfo?.id!,
+      startDate: startStr,
+      endDate: endStr
+    })
+    if (res.code === 200 && res.data) {
+      weekDays.value = res.data
+    } else {
+      weekDays.value = []
+    }
+  } catch (error) {
+    console.error('获取工时数据失败:', error)
+    weekDays.value = []
+  }
+}
 
 // 当前周的日期范围标签
 const weekRangeLabel = computed(() => {
@@ -117,7 +129,7 @@ const weekRangeLabel = computed(() => {
 
 function getMonday(date: Date) {
   const d = new Date(date)
-  d.setDate(d.getDate() - d.getDay() + 1)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
   return d
 }
 
@@ -189,19 +201,25 @@ function prevWeek() {
   const newStart = new Date(currentWeekStart.value)
   newStart.setDate(newStart.getDate() - 7)
   currentWeekStart.value = newStart
-  weekDays.value = generateWeekDays(currentWeekStart.value)
+  fetchWeekDays(currentWeekStart.value)
 }
 
 function nextWeek() {
   const newStart = new Date(currentWeekStart.value)
   newStart.setDate(newStart.getDate() + 7)
   currentWeekStart.value = newStart
-  weekDays.value = generateWeekDays(currentWeekStart.value)
+  fetchWeekDays(currentWeekStart.value)
 }
 
-onMounted(() => {
-  fetchMyProjects()
-  fetchMyTasks()
+function goThisWeek() {
+  currentWeekStart.value = getMonday(new Date())
+  fetchWeekDays(currentWeekStart.value)
+}
+
+onMounted(async () => {
+  await fetchMyProjects()
+  await fetchMyTasks()
+  await fetchWeekDays(currentWeekStart.value)
 })
 </script>
 
