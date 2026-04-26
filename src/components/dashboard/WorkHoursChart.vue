@@ -17,25 +17,7 @@
       </div>
     </div>
     <div class="card-content">
-      <div class="hours-chart">
-        <div class="chart-bars">
-          <div
-            v-for="day in weekDays"
-            :key="day.label"
-            class="chart-bar-wrapper"
-          >
-            <div class="chart-bar-container">
-              <div
-                class="chart-bar"
-                :style="{ height: barHeight(day.hours) + '%' }"
-              >
-                <span class="bar-value">{{ day.hours }}h</span>
-              </div>
-            </div>
-            <span class="chart-label">{{ day.label }}</span>
-          </div>
-        </div>
-      </div>
+      <div ref="chartRef" class="hours-chart"></div>
       <div class="hours-summary">
         <div class="summary-item">
           <span class="summary-label">本周总计</span>
@@ -51,7 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue'
+import * as echarts from 'echarts'
 
 interface WeekDay {
   label: string
@@ -66,6 +49,9 @@ const emit = defineEmits<{
   prevWeek: []
   nextWeek: []
 }>()
+
+const chartRef = ref<HTMLElement>()
+let chartInstance: echarts.ECharts | null = null
 
 const weekLabel = computed(() => {
   const today = new Date()
@@ -85,9 +71,111 @@ const avgDailyHours = computed(() => {
   return daysWithHours > 0 ? (totalWeekHours.value / daysWithHours).toFixed(1) : '0'
 })
 
-function barHeight(hours: number) {
-  const maxHours = 12
-  return Math.min((hours / maxHours) * 100, 100)
+function renderChart() {
+  if (!chartRef.value) return
+
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
+
+  chartInstance = echarts.init(chartRef.value)
+
+  const option: echarts.EChartsOption = {
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: '#fff',
+      borderColor: '#d4cfc5',
+      borderWidth: 1,
+      textStyle: {
+        color: '#5a5a5a',
+        fontSize: 12
+      },
+      formatter: (params: any) => {
+        const data = params[0]
+        return `${data.name}<br/>工时: <strong style="color:#b85c38">${data.value}h</strong>`
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '8%',
+      top: '15%',
+      containLabel: true
+    },
+    xAxis: {
+      type: 'category',
+      data: props.weekDays.map(d => d.label),
+      axisLine: {
+        lineStyle: {color: '#d4cfc5'}
+      },
+      axisLabel: {
+        color: '#8a8a8a',
+        fontSize: 12,
+        margin: 8
+      },
+      axisTick: {show: false}
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: {show: false},
+      axisLabel: {
+        color: '#8a8a8a',
+        fontSize: 11
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#ebe4d6',
+          type: 'dashed'
+        }
+      }
+    },
+    series: [
+      {
+        type: 'bar',
+        barWidth: '40%',
+        itemStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 0, y2: 1,
+            colorStops: [
+              {offset: 0, color: '#b85c38'},
+              {offset: 1, color: '#d4845c'}
+            ]
+          },
+          borderRadius: [4, 4, 0, 0]
+        },
+        emphasis: {
+          itemStyle: {
+            color: {
+              type: 'linear',
+              x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [
+                {offset: 0, color: '#c96740'},
+                {offset: 1, color: '#e0956f'}
+              ]
+            }
+          }
+        },
+        data: props.weekDays.map(d => d.hours),
+        label: {
+          show: true,
+          position: 'top',
+          fontSize: 10,
+          color: '#b85c38',
+          formatter: '{c}h',
+          fontWeight: 600
+        }
+      }
+    ],
+    animationDuration: 800,
+    animationEasing: 'cubicOut'
+  }
+
+  chartInstance.setOption(option)
+}
+
+function handleResize() {
+  chartInstance?.resize()
 }
 
 function prevWeek() {
@@ -97,6 +185,20 @@ function prevWeek() {
 function nextWeek() {
   emit('nextWeek')
 }
+
+watch(() => props.weekDays, () => {
+  renderChart()
+}, {deep: true})
+
+onMounted(() => {
+  renderChart()
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', handleResize)
+  chartInstance?.dispose()
+})
 </script>
 
 <style scoped>
@@ -108,7 +210,7 @@ function nextWeek() {
   --accent-warm: #c4a77d;
   --accent-rust: #b85c38;
   --border-color: #d4cfc5;
-  
+
   background: white;
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
@@ -182,57 +284,9 @@ function nextWeek() {
 }
 
 .hours-chart {
-  margin-bottom: 18px;
-}
-
-.chart-bars {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
+  width: 100%;
   height: 150px;
-  padding-top: 20px;
-}
-
-.chart-bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-}
-
-.chart-bar-container {
-  width: 100%;
-  max-width: 36px;
-  height: 110px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-}
-
-.chart-bar {
-  width: 100%;
-  background: var(--accent-rust);
-  position: relative;
-  transition: height 0.3s ease;
-  min-height: 3px;
-  border: 1px solid var(--ink-dark);
-}
-
-.bar-value {
-  position: absolute;
-  top: -18px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--accent-rust);
-  white-space: nowrap;
-}
-
-.chart-label {
-  font-size: 11px;
-  color: var(--ink-light);
+  margin-bottom: 18px;
 }
 
 .hours-summary {
