@@ -76,4 +76,8 @@ export const workRecordApi = {
   getTopProjects(params: { month: string; limit?: number }) {
     return request.get<TopProjectsStats>('/work-record/stats/top-projects', { params })
   },
+
+  export(params: { userId?: number; projectId?: number; startDate?: string; endDate?: string }) {
+    return request.get('/work-record/export', { params, responseType: 'blob' })
+  },
 }

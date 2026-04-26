@@ -6,12 +6,20 @@
         <h1 class="page-title">工时填报</h1>
         <p class="page-subtitle">记录每日工作工时</p>
       </div>
-      <el-button type="primary" @click="openAddModal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        填报工时
-      </el-button>
+      <div class="header-actions">
+        <el-button @click="handleExport">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          导出
+        </el-button>
+        <el-button type="primary" @click="openAddModal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-icon">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          填报工时
+        </el-button>
+      </div>
     </div>
 
     <!-- 搜索区域 -->
@@ -36,6 +44,28 @@
             <el-option :value="4" label="文档"/>
             <el-option :value="5" label="其他"/>
           </el-select>
+        </el-form-item>
+        <el-form-item label="开始日期">
+          <el-date-picker
+              v-model="searchParams.startDate"
+              type="date"
+              placeholder="选择开始日期"
+              clearable
+              style="width: 150px"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
+        <el-form-item label="结束日期">
+          <el-date-picker
+              v-model="searchParams.endDate"
+              type="date"
+              placeholder="选择结束日期"
+              clearable
+              style="width: 150px"
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+          />
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -128,6 +158,8 @@ const currentRecord = ref<WorkRecord | null>(null)
 const searchParams = reactive<WorkRecordPageParams>({
   projectId: undefined,
   workType: undefined,
+  startDate: undefined,
+  endDate: undefined,
   current: 1,
   size: 10
 })
@@ -144,7 +176,9 @@ async function fetchRecords() {
       current: pagination.current,
       size: pagination.size,
       projectId: searchParams.projectId,
-      workType: searchParams.workType
+      workType: searchParams.workType,
+      startDate: searchParams.startDate,
+      endDate: searchParams.endDate
     }
     const res = await workRecordApi.myPage(params)
     recordList.value = res.data.records
@@ -175,6 +209,8 @@ function handleSearch() {
 function handleReset() {
   searchParams.projectId = undefined
   searchParams.workType = undefined
+  searchParams.startDate = undefined
+  searchParams.endDate = undefined
   pagination.current = 1
   fetchRecords()
 }
@@ -285,6 +321,29 @@ function getStatusText(status: number) {
   return map[status] || '未知'
 }
 
+async function handleExport() {
+  try {
+    const params: Record<string, any> = {}
+    if (searchParams.projectId) params.projectId = searchParams.projectId
+    if (searchParams.startDate) params.startDate = searchParams.startDate
+    if (searchParams.endDate) params.endDate = searchParams.endDate
+
+    const blob = await workRecordApi.export(params)
+    const url = window.URL.createObjectURL(blob as Blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '工时记录.xlsx'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败:', error)
+    ElMessage.error('导出失败，请重试')
+  }
+}
+
 onMounted(() => {
   fetchProjectsAndTasks()
   fetchRecords()
@@ -331,6 +390,11 @@ onMounted(() => {
   width: 14px;
   height: 14px;
   margin-right: 6px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
 }
 
 .search-card {

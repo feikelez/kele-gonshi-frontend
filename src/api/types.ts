@@ -159,6 +159,8 @@ export interface WorkRecordPageParams {
   taskId?: number
   status?: number
   workType?: number
+  startDate?: string
+  endDate?: string
 }
 
 export interface ProjectMemberPageParams {
