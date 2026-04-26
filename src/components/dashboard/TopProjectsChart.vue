@@ -51,7 +51,6 @@ async function fetchTopProjects() {
     if (res.code === 200 && res.data && res.data.projects) {
       loading.value = false
       await nextTick()
-      await nextTick()
       renderChart(res.data.projects)
     } else {
       renderChart([])
@@ -59,6 +58,8 @@ async function fetchTopProjects() {
   } catch (error) {
     console.error('获取项目工时排行失败:', error)
     renderChart([])
+  } finally {
+    loading.value = false
   }
 }
 

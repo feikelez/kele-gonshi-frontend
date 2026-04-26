@@ -5,7 +5,7 @@
     <StatsGrid :stats="stats"/>
 
     <!-- 新增图表区域 -->
-    <div class="charts-section">
+    <div v-if="canViewCharts" class="charts-section">
       <div class="charts-row">
         <ProjectWorkHoursChart class="chart-item"/>
         <TopProjectsChart class="chart-item"/>
@@ -31,6 +31,7 @@
 <script setup lang="ts">
 import {ref, computed, onMounted} from 'vue'
 import {projectApi, taskApi} from '@/api'
+import {useUserStore} from '@/stores/user'
 import WelcomeSection from '@/components/dashboard/WelcomeSection.vue'
 import StatsGrid from '@/components/dashboard/StatsGrid.vue'
 import TaskList from '@/components/dashboard/TaskList.vue'
@@ -39,6 +40,9 @@ import ProjectList from '@/components/dashboard/ProjectList.vue'
 import QuickActions from '@/components/dashboard/QuickActions.vue'
 import ProjectWorkHoursChart from '@/components/dashboard/ProjectWorkHoursChart.vue'
 import TopProjectsChart from '@/components/dashboard/TopProjectsChart.vue'
+
+const userStore = useUserStore()
+const canViewCharts = computed(() => !userStore.hasRole('EMPLOYEE'))
 
 const stats = computed(() => [
   {

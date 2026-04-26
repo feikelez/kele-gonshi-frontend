@@ -67,9 +67,10 @@
             {{ formatDate(row.createTime) }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="150" fixed="right">
+        <el-table-column label="操作" width="180" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openEditModal(row)">编辑</el-button>
+            <el-button link type="warning" @click="openAssignRoleModal(row)">分配角色</el-button>
             <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
         </el-table-column>
@@ -98,6 +99,13 @@
         @submit="handleSubmit"
         @cancel="closeModal"
     />
+
+    <!-- 分配角色弹窗 -->
+    <AssignRoleDialog
+        v-model="showAssignRoleDialog"
+        :user="currentAssignUser"
+        @success="fetchUsers"
+    />
   </div>
 </template>
 
@@ -107,12 +115,15 @@ import {userApi} from '@/api'
 import type {User, UserPageParams} from '@/api/types'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import UserForm from './form.vue'
+import AssignRoleDialog from './AssignRoleDialog.vue'
 
 const userList = ref<User[]>([])
 const showModal = ref(false)
 const isEdit = ref(false)
 const submitting = ref(false)
 const currentUser = ref<User | null>(null)
+const showAssignRoleDialog = ref(false)
+const currentAssignUser = ref<User | null>(null)
 
 const searchParams = reactive<UserPageParams>({
   username: undefined,
@@ -175,6 +186,11 @@ function openEditModal(user: User) {
 function closeModal() {
   showModal.value = false
   currentUser.value = null
+}
+
+function openAssignRoleModal(user: User) {
+  currentAssignUser.value = user
+  showAssignRoleDialog.value = true
 }
 
 async function handleSubmit(data: User) {
