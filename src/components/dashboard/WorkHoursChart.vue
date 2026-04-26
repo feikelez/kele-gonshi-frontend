@@ -43,6 +43,7 @@ interface WeekDay {
 
 const props = defineProps<{
   weekDays: WeekDay[]
+  weekRangeLabel?: string
 }>()
 
 const emit = defineEmits<{
@@ -54,6 +55,7 @@ const chartRef = ref<HTMLElement>()
 let chartInstance: echarts.ECharts | null = null
 
 const weekLabel = computed(() => {
+  if (props.weekRangeLabel) return props.weekRangeLabel
   const today = new Date()
   const start = new Date(today)
   start.setDate(start.getDate() - start.getDay() + 1)
